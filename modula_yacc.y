@@ -249,7 +249,7 @@ statement:  ID OPEARATOR_ASSIGIN expression ';' {
             |   KEYWORD_READ expression ';' {
                     Trace("Reducing to statement\n");
             }   
-            |   KEYWORD_RETURN expression ';'   {
+            |   KEYWORD_RETURN ';'      {
                     Trace("Reducing to statement\n");
             }
             |   KEYWORD_RETURN expression ';'   {
@@ -348,7 +348,7 @@ stringExpr:     STRING  {
                         Trace("Reducing to stringExpr Form STRING\n");
                 }
         	;
-funcInvoc:	ID      { 
+funcInvoc:	ID '(' ')'      { 
 		        Trace("Reducing to functionInvoc\n");
 		}
                 |       ID '(' parameters ')'   { 
