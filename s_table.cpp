@@ -102,7 +102,7 @@ variableEntry ve_arr(std::string name, int type, bool isConst, int arrSize)
 symbolTables::symbolTables()
 {
 	symbolTable st;
-	st.scopeName = "GOLOBAL";
+	st.scopeName = "GLOBAL";
 
 	tables.push_back(st);
 }

@@ -60,12 +60,9 @@ char str_buf[MAX_LINE_LENG];
 
 number [0-9]+
 identifier [a-zA-Z0-9]+
-boolean "false"|"true"
 realnum [0-9]+.[0-9]+
 
 %x IN_STRING
-%x IN_COMMENT
-%x IN_LINECOMMENT
              
 %%
 
@@ -108,7 +105,6 @@ realnum [0-9]+.[0-9]+
 "else"          {token(KEYWORD_ELSE);}
 "end"           {token(KEYWORD_END);}
 "exit"          {token(KEYWORD_EXIT);}
-"false"         {token(KEYWORD_FALSE);}
 "for"           {token(KEYWORD_FOR);}
 "fn"            {token(KEYWORD_FN);}
 "if"            {token(KEYWORD_IF);}
@@ -125,12 +121,24 @@ realnum [0-9]+.[0-9]+
 "string"        {token(KEYWORD_STRING);}        
 "record"        {token(KEYWORD_RECORD);}        
 "then"          {token(KEYWORD_THEN);}
-"ture"          {token(KEYWORD_TURE);}
 "type"          {token(KEYWORD_TYPE);}
 "use"           {token(KEYWORD_USE);}
 "util"          {token(KEYWORD_UTIL);}
 "var"           {token(KEYWORD_VAR);}
 "while"         {token(KEYWORD_WHILE);}
+"of"            {token(KEYWORD_OF);}
+"read"          {token(KEYWORD_READ);}
+
+"false"         {
+                yylval.Token.tokenType = T_BOOL;
+                yylval.Token.boolVal = false;
+                tokenType(BOOLEAN, yytext);
+                }
+"true"          {
+                yylval.Token.tokenType = T_BOOL;
+                yylval.Token.boolVal = true;
+                tokenType(BOOLEAN, yytext);
+                }
 
 {number}	{
                 yylval.Token.tokenType = T_INT;
@@ -142,11 +150,8 @@ realnum [0-9]+.[0-9]+
                 yylval.Token.floatVal = atof(yytext);
                 tokenType(REAL, yytext);
 		}
-{boolean}       {
-                tokenType(BOOLEAN, yytext);
-                }
-        
-"\""      {
+
+\"      {
         LIST;
         BEGIN(IN_STRING);
         }                
@@ -165,7 +170,10 @@ realnum [0-9]+.[0-9]+
                 LIST;
                 strcat(str_buf, "\"");
                 }
-
+<IN_STRING>.    {
+                LIST;
+                strcat(str_buf, yytext);
+                }
 
 {identifier}	{
                 yylval.Token.stringVal = strdup(yytext);
