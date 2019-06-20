@@ -4,7 +4,7 @@ YACC = bison
 LEX_FILENAME = modula_lex.l
 YACC_FILENAME = modula_yacc.y
 OUTPUT_FILENAME = modula.exe
-TEST_FILENAME = ./test_program/a10.modula
+TEST_FILENAME = ./test_program/Bonus1.modula
 OTHER_SOURCE = s_table.cpp
 
 $(OUTPUT_FILENAME): clean lex.yy.o y.tab.o
@@ -28,6 +28,8 @@ clean:
 	rm -f lex.yy.cpp y.tab.cpp y.tab.h  *.o *.exe *.class *.jasm
 
 fixedRun: getJasm getClass excuteJava
+
+javarun: getClass excuteJava
 
 getJasm: $(TEST_FILENAME)
 	./$(OUTPUT_FILENAME) $(TEST_FILENAME)

@@ -169,7 +169,7 @@ realnum [0-9]+.[0-9]+
 <IN_STRING>\"\" {
                 LIST;
                 strcat(str_buf, "\"");
-                }
+                }  
 <IN_STRING>.    {
                 LIST;
                 strcat(str_buf, yytext);

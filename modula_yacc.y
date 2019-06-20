@@ -223,6 +223,10 @@ vars:   ids ':' type ';'   {
                                         fp << "field static int " << ve.name << endl;
                                 else if (ve.type == T_BOOL)
                                         fp << "field static int " << ve.name << endl;
+				else if (ve.type == T_REAL)
+                                        fp << "field static float " << ve.name << endl;
+				else if (ve.type == T_STRING)
+                                        fp << "field static java.lang.String " << ve.name << endl;
                         }
                         else
                         {
@@ -247,6 +251,8 @@ vars:   ids ':' type ';'   {
                                                 fp << "field static int " << ve.name << endl;
                                         else if (ve.type == T_BOOL)
                                                 fp << "field static int " << ve.name << endl;
+					else if (ve.type == T_STRING)
+                                        	fp << "field static string " << ve.name << endl;
                                 }
                                 else
                                 {
@@ -353,28 +359,28 @@ func:           KEYWORD_PROCEDURE ID '('        {
                                 fp << "}" << endl;
                                 symTabs.pop_table();
                         }
-                |       KEYWORD_BEGIN   {
-                                symTabs.push_table("this");
-                                printTabs();
-                                fp << "method public static void main(java.lang.String[])" << endl;
-                                printTabs();
-                                fp << "max_stack 15" << endl;
-                                printTabs();
-                                fp << "max_locals 15" << endl;
-                                printTabs();
-                                fp << "{" << endl;
-                                nowTabs++;
-                        } 
-                        KEYWORD_END ID '.' {
-                                Trace("Reducing to mainfunc from KEYWORD_END ID '.'\n");
-                                symTabs.pop_table();
-                                printTabs();
-                                fp << "return" << endl;
-                                nowTabs--;
-                                printTabs();
-                                fp << "}" << endl;
-                                symTabs.pop_table();
-                        }   
+                // |       KEYWORD_BEGIN   {
+                //                 symTabs.push_table("this");
+                //                 printTabs();
+                //                 fp << "method public static void main(java.lang.String[])" << endl;
+                //                 printTabs();
+                //                 fp << "max_stack 15" << endl;
+                //                 printTabs();
+                //                 fp << "max_locals 15" << endl;
+                //                 printTabs();
+                //                 fp << "{" << endl;
+                //                 nowTabs++;
+                //         } 
+                //         KEYWORD_END ID '.' {
+                //                 Trace("Reducing to mainfunc from KEYWORD_END ID '.'\n");
+                //                 symTabs.pop_table();
+                //                 printTabs();
+                //                 fp << "return" << endl;
+                //                 nowTabs--;
+                //                 printTabs();
+                //                 fp << "}" << endl;
+                //                 symTabs.pop_table();
+                //         }   
                 ;
 arguments:      ID ':' type     {
                         Trace("Reducing to arguments Form ID ':' type\n");
@@ -449,7 +455,12 @@ statement:      ID OPEARATOR_ASSIGIN expression ';' {
 		        if (ve.isGlobal)
 		        {
 		        	printTabs();
-		        	fp << "putstatic int " << outputfileName << "." << ve.name << endl;
+				if (ve.type == T_INT)
+		        		fp << "putstatic int " << outputfileName << "." << ve.name << endl;
+				else if (ve.type == T_REAL)
+					fp << "putstatic float " << outputfileName << "." << ve.name << endl;
+				else if (ve.type == T_STRING)
+					fp << "putstatic java.lang.String " << outputfileName << "." << ve.name << endl;	        	
 		        }
 		        else
 		        {
@@ -474,6 +485,8 @@ statement:      ID OPEARATOR_ASSIGIN expression ';' {
 					fp << "boolean)" << endl;
 				else if ($3.tokenType == T_STRING)
 					fp << "java.lang.String)" << endl;
+				else if ($3.tokenType == T_REAL)
+					fp << "float)" << endl;
                         }
                 |       KEYWORD_PRINTLN {
                                 printTabs();
@@ -489,6 +502,8 @@ statement:      ID OPEARATOR_ASSIGIN expression ';' {
 					fp << "boolean)" << endl;
 				else if ($3.tokenType == T_STRING)
 					fp << "java.lang.String)" << endl;
+				else if ($3.tokenType == T_REAL)
+					fp << "float)" << endl;
                         }
                 // |       KEYWORD_READ expression ';' {
                 //                 Trace("Reducing to statement\n");
@@ -559,7 +574,10 @@ expression:     '-' expression %prec UMINUS {
                                
 				if (!nowIsConstant && !symTabs.isNowGlobal()) {
                                         printTabs();
-                                        fp << "iadd" << endl;
+					if ($$.tokenType == T_INT)
+                                        	fp << "iadd" << endl;
+					else if($$.tokenType == T_REAL)
+						fp << "fadd" << endl;
 				}
                         }
                 |       expression '-' expression   {
@@ -590,7 +608,10 @@ expression:     '-' expression %prec UMINUS {
 					yyerror("'-' arg type error.");
 				if (!nowIsConstant && !symTabs.isNowGlobal()) {
 					printTabs();
-					fp << "isub" << endl;
+					if ($$.tokenType == T_INT)
+                                        	fp << "isub" << endl;
+					else if($$.tokenType == T_REAL)
+						fp << "fsub" << endl;
 				}
                         }
                 |       expression '*' expression   {
@@ -621,7 +642,10 @@ expression:     '-' expression %prec UMINUS {
 					yyerror("'*' arg type error.");
 				if (!nowIsConstant && !symTabs.isNowGlobal()) {
 					printTabs();
-					fp << "imul" << endl;
+					if ($$.tokenType == T_INT)
+                                        	fp << "imul" << endl;
+					else if($$.tokenType == T_REAL)
+						fp << "fmul" << endl;
 				}
                         }
                 |       expression '/' expression   {
@@ -632,9 +656,15 @@ expression:     '-' expression %prec UMINUS {
 				if ($3.notInit)
 					yyerror("'/' right arg is not initial.");
 				if ($1.tokenType == T_INT && $3.tokenType == T_INT){
-					$$.tokenType = T_REAL;
-                                        $$.floatVal = $1.floatVal / $3.floatVal;
-				}
+					if ($1.intVal != 0){
+						$$.tokenType = T_INT;
+						$$.intVal = $1.intVal / $3.intVal;
+					}
+				}	
+				// if ($1.tokenType == T_INT && $3.tokenType == T_INT){
+				// 	$$.tokenType = T_REAL;
+                                //         $$.floatVal = $1.floatVal / $3.floatVal;
+				// }
 				// else if ($1.tokenType == T_REAL && $3.tokenType == T_REAL){
 				// 	$$.tokenType = T_REAL;
 				// 	$$.floatVal = $1.floatVal / $3.floatVal;
@@ -647,12 +677,12 @@ expression:     '-' expression %prec UMINUS {
 				// 	$$.tokenType = T_REAL;
 				// 	$$.floatVal = $1.floatVal / $3.intVal;
 				// }
-				else
-					yyerror("'/' arg type error.");
+				// else
+				// 	yyerror("'/' arg type error.");
 
 				if (!nowIsConstant && !symTabs.isNowGlobal()) {
 					printTabs();
-					fp << "idiv" << endl;
+                                        fp << "idiv" << endl;
 				}
                         }        
                 |       '(' expression ')'  {
@@ -727,7 +757,12 @@ expression:     '-' expression %prec UMINUS {
 			        	if (ve.isGlobal)
 			        	{
 			        		printTabs();
-			        		fp << "getstatic int " << outputfileName << "." << ve.name << endl;
+						if (ve.type == T_INT)
+							fp << "getstatic int " << outputfileName << "." << ve.name << endl;
+						else if (ve.type == T_REAL)
+							fp << "getstatic float " << outputfileName << "." << ve.name << endl;
+						else if (ve.type == T_STRING)
+							fp << "getstatic java.lang.String " << outputfileName << "." << ve.name << endl;
 			        	}
 			        	else
 			        	{
@@ -753,6 +788,10 @@ integerExpr:    INTEGER {
 		;
 realExpr:       REAL    { 
                         Trace("Reducing to realExpr Form REAL\n");
+			if (!nowIsConstant && !symTabs.isNowGlobal()){
+                                printTabs();
+                                fp << "ldc " << $1.floatVal << "f" << endl;
+                        }
                 }
 	        ;
 boolExpr:       BOOLEAN    {
